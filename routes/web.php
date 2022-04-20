@@ -15,17 +15,34 @@ use Inertia\Inertia;
 |
 */
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+// フロント
+Route::prefix('/')->group(function () {
+    Route::get('', function () {
+        return Inertia::render('Welcome', [
+            'canLogin' => Route::has('login'),
+            'canRegister' => Route::has('register'),
+            'laravelVersion' => Application::VERSION,
+            'phpVersion' => PHP_VERSION,
+        ]);
+    });
+
+    // 認証後
+    Route::middleware(['auth:front', 'verified'])->group(function () {
+        Route::get('/home', function () {
+            return Inertia::render('Front/home');
+        })->name('home');
+    });
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// 管理者
+Route::prefix('/admin')->group(function () {
+    // 認証後
+    Route::middleware(['auth:admin', 'verified'])->group(function () {
+        Route::get('/home', function () {
+            return Inertia::render('Admin/Home');
+        })->name('home');
+    });
+});
 
-require __DIR__.'/auth.php';
+require __DIR__.'/front.auth.php';
+require __DIR__.'/admin.auth.php';
